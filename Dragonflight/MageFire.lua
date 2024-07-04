@@ -1977,7 +1977,7 @@ spec:RegisterSetting( "prevent_hardcasts", false, {
         Hekili:GetSpellLinkWithTexture( spec.abilities.fireball.id ) ),
     desc = strformat( "If checked, non-instant %s and %s casts will not be recommended while you are moving.\n\nAn exception is made if %s is talented and active and your cast "
         .. "would be complete before |W%s|w expires.", Hekili:GetSpellLinkWithTexture( spec.abilities.pyroblast.id ), Hekili:GetSpellLinkWithTexture( spec.abilities.fireball.id ),
-        Hekili:GetSpellLinkWithTexture( 108839 ), ( GetSpellInfo( 108839 ) ) ),
+        Hekili:GetSpellLinkWithTexture( 108839 ), ( C_Spell.GetSpellName( 108839 ) ) ),
     type = "toggle",
     width = "full"
 } )

@@ -1111,7 +1111,7 @@ function Hekili:GetPredictionFromAPL( dispName, packName, listName, slot, action
                                                         slot.actionName = state.this_action
                                                         slot.actionID = -1 * item
 
-                                                        slot.texture = select( 10, GetItemInfo( item ) )
+                                                        slot.texture = select( 10, C_Item.GetItemInfo( item ) )
                                                         slot.caption = ability.caption or entry.caption
                                                         slot.item = item
 

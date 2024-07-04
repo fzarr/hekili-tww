@@ -1422,7 +1422,7 @@ local function IsActiveSpell( id )
     local slot = FindSpellBookSlotBySpellID( id )
     if not slot then return false end
 
-    local _, _, spellID = GetSpellBookItemName( slot, "spell" )
+    local _, _, spellID = C_SpellBook.GetSpellBookItemName( slot, "spell" )
     return id == spellID
 end
 

@@ -903,7 +903,7 @@ spec:RegisterSetting( "experimental_msg", nil, {
     width = "full",
 } )
 
-local deep_breath = GetSpellInfo( 357210 ) or "Deep Breath"
+local deep_breath = C_Spell.GetSpellName( 357210 ) or "Deep Breath"
 
 spec:RegisterSetting( "use_deep_breath", true, {
     name = strformat( "Use %s", Hekili:GetSpellLinkWithTexture( 357210 ) ),
@@ -915,7 +915,7 @@ spec:RegisterSetting( "use_deep_breath", true, {
     width = "full",
 } )
 
-local unravel = GetSpellInfo( 368432 ) or "Unravel"
+local unravel = C_Spell.GetSpellName( 368432 ) or "Unravel"
 
 spec:RegisterSetting( "use_unravel", false, {
     name = strformat( "Use %s", Hekili:GetSpellLinkWithTexture( 368432 ) ),

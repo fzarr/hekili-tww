@@ -574,7 +574,7 @@ function ns.IsActiveSpell( id )
     local slot = FindSpellBookSlotBySpellID( id )
     if not slot then return false end
 
-    local _, _, spellID = GetSpellBookItemName( slot, "spell" )
+    local _, _, spellID = C_SpellBook.GetSpellBookItemName( slot, "spell" )
     return id == spellID
 end
 
@@ -586,7 +586,8 @@ function Hekili:GetSpellLinkWithTexture( id, size, color )
         id = class.abilities[ id ].id
     end
 
-    local name, _, _, _, _, _, _, icon = GetSpellInfo( id )
+    local spellInfo = C_Spell.GetSpellInfo( id )
+    local name, tex, castTime, minRange, maxRange, spellId, icon = spellInfo.name, spellInfo.iconID, spellInfo.castTime, spellInfo.minRange, spellInfo.maxRange, spellInfo.spellID, spellInfo.originalIconID
 
     if name and icon then
         if type( color ) == "boolean" then
@@ -854,7 +855,7 @@ do
             return unpack( itemCache[ id ] )
         end
 
-        local item = { GetItemInfo( id ) }
+        local item = { C_Item.GetItemInfo( id ) }
         if item and item[ 1 ] then
             itemCache[ id ] = item
             return unpack( item )
@@ -926,7 +927,7 @@ function Hekili:GetLoadoutExportString()
     local bitWidthRanksPurchased = 6
 
     -- Cannot force-load as needed without causing taint, so this simply replicates existing Blizzard functionality.
-    if IsAddOnLoaded( "Blizzard_ClassTalentUI" ) then
+    if C_AddOns.IsAddOnLoaded( "Blizzard_ClassTalentUI" ) then
         bitWidthHeaderVersion = ClassTalentImportExportMixin.bitWidthHeaderVersion
         bitWidthSpecID = ClassTalentImportExportMixin.bitWidthSpecID
         bitWidthRanksPurchased = ClassTalentImportExportMixin.bitWidthRanksPurchased

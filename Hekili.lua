@@ -1,10 +1,10 @@
 -- Hekili.lua
--- April 2014
+-- June 2024
 
 local addon, ns = ...
 Hekili = LibStub("AceAddon-3.0"):NewAddon( "Hekili", "AceConsole-3.0", "AceSerializer-3.0" )
-Hekili.Version = GetAddOnMetadata( "Hekili", "Version" )
-Hekili.Flavor = GetAddOnMetadata( "Hekili", "X-Flavor" ) or "Retail"
+Hekili.Version = C_AddOns.GetAddOnMetadata( "Hekili", "Version" )
+Hekili.Flavor = C_AddOns.GetAddOnMetadata( "Hekili", "X-Flavor" ) or "Retail"
 
 local format = string.format
 local insert, concat = table.insert, table.concat
@@ -33,13 +33,17 @@ Hekili.IsClassic = function()
 end
 
 Hekili.IsDragonflight = function()
-    return buildNum >= 100000
+    return buildNum >= 100000 and buildNum < 110000
 end
 
-Hekili.BuiltFor = 100205
+Hekili.IsTheWarWithin = function()
+    return buildNum >= 110000
+end
+
+Hekili.BuiltFor = 110000
 Hekili.GameBuild = buildStr
 
-ns.PTR = buildNum > 100205
+ns.PTR = buildNum >= 110000
 
 
 ns.Patrons = "|cFFFFD100Current Status|r\n\n"
@@ -261,7 +265,11 @@ function Hekili:SaveDebugSnapshot( dispName )
             local class = Hekili.Class
 
             for i = 1, 40 do
-                local name, _, count, debuffType, duration, expirationTime, source, _, _, spellId, canApplyAura, isBossDebuff, castByPlayer = UnitBuff( "player", i )
+                local auraData = C_UnitAuras.GetBuffDataByIndex("player", i);
+
+                if not auraData then break end
+        
+                local name, _, count, debuffType, duration, expirationTime, source, _, _, spellId, canApplyAura, isBossDebuff, castByPlayer, _, timeMod, v1, v2, v3 = AuraUtil.UnpackAuraData(auraData)                
 
                 if not name then break end
 
@@ -275,7 +283,11 @@ function Hekili:SaveDebugSnapshot( dispName )
             auraString = auraString .. "\n\nplayer_debuffs:"
 
             for i = 1, 40 do
-                local name, _, count, debuffType, duration, expirationTime, source, _, _, spellId, canApplyAura, isBossDebuff, castByPlayer = UnitDebuff( "player", i )
+                local auraData = C_UnitAuras.GetDebuffDataByIndex("player", i);
+
+                if not auraData then break end
+                
+                local name, _, count, debuffType, duration, expirationTime, source, _, _, spellId, canApplyAura, isBossDebuff, castByPlayer, _, timeMod, v1, v2, v3 = AuraUtil.UnpackAuraData(auraData)                
 
                 if not name then break end
 
@@ -293,7 +305,11 @@ function Hekili:SaveDebugSnapshot( dispName )
                 auraString = auraString .. "\n\ntarget_buffs:"
 
                 for i = 1, 40 do
-                    local name, _, count, debuffType, duration, expirationTime, source, _, _, spellId, canApplyAura, isBossDebuff, castByPlayer = UnitBuff( "target", i )
+                    local auraData = C_UnitAuras.GetBuffDataByIndex("target", i);
+
+                    if not auraData then break end
+            
+                    local name, _, count, debuffType, duration, expirationTime, source, _, _, spellId, canApplyAura, isBossDebuff, castByPlayer, _, timeMod, v1, v2, v3 = AuraUtil.UnpackAuraData(auraData)      
 
                     if not name then break end
 
@@ -307,8 +323,12 @@ function Hekili:SaveDebugSnapshot( dispName )
                 auraString = auraString .. "\n\ntarget_debuffs:"
 
                 for i = 1, 40 do
-                    local name, _, count, debuffType, duration, expirationTime, source, _, _, spellId, canApplyAura, isBossDebuff, castByPlayer = UnitDebuff( "target", i, "PLAYER" )
+                    local auraData = C_UnitAuras.GetDebuffDataByIndex("target", i, "PLAYER" );
 
+                    if not auraData then break end
+                    
+                    local name, _, count, debuffType, duration, expirationTime, source, _, _, spellId, canApplyAura, isBossDebuff, castByPlayer, _, timeMod, v1, v2, v3 = AuraUtil.UnpackAuraData(auraData)                
+    
                     if not name then break end
 
                     local aura = class.auras[ spellId ]
@@ -320,6 +340,23 @@ function Hekili:SaveDebugSnapshot( dispName )
             end
 
             auraString = auraString .. "\n\n"
+
+            local configID = C_ClassTalents.GetActiveConfigID() or -1
+            local configInfo = C_Traits.GetConfigInfo(configID)
+            local nodes = C_Traits.GetTreeNodes(configInfo.treeIDs[1])
+            for k, nodeID in pairs(nodes) do
+                local nodeInfo = C_Traits.GetNodeInfo(configID, nodeID)
+                for k, nodeEntryID in pairs(nodeInfo.entryIDs) do 
+                    local nodeEntry = C_Traits.GetEntryInfo(configID, nodeEntryID)
+                    if nodeEntry and nodeEntry.definitionID then
+                        local definition = C_Traits.GetDefinitionInfo (nodeEntry.definitionID)
+                        if definition then 
+                            local t = format("%d %s", nodeID, C_Traits.GetTraitDescription(nodeEntryID, 1))
+                            insert( v.log, 1, t )
+                        end
+                    end
+                end
+            end            
 
             insert( v.log, 1, auraString )
             insert( v.log, 1, "targets:  " .. ( Hekili.TargetDebug or "no data" ) )
@@ -377,3 +414,19 @@ Hekili.Snapshots = ns.snapshots
 
 ns.Tooltip = CreateFrame( "GameTooltip", "HekiliTooltip", UIParent, "GameTooltipTemplate" )
 Hekili:ProfileFrame( "HekiliTooltip", ns.Tooltip )
+
+function debug_print_table (tbl, indent)
+    if not indent then indent = 0 end
+
+    for k, v in pairs(tbl) do
+      formatting = string.rep("  ", indent) .. k .. ": "
+      if type(v) == "table" then
+        print(formatting)
+        debug_print_table(v, indent+1)
+      elseif type(v) == 'boolean' or type(v) == 'userdata' or type(v) == 'function' then
+        print(formatting .. tostring(v))      
+      else
+        print(formatting .. v)
+      end
+    end
+end

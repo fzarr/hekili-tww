@@ -277,7 +277,7 @@ do
         end
     end
 
-    if not Hekili.IsDragonflight() then
+    if not Hekili.IsDragonflight() and not Hekili.IsTheWarWithin() then
         RegisterEvent( "CHROMIE_TIME_OPEN", ChromieCheck )
         RegisterEvent( "CHROMIE_TIME_CLOSE", ChromieCheck )
     end

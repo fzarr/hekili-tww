@@ -27,9 +27,11 @@ local mt_resource = ns.metatables.mt_resource
 
 local GetActiveLossOfControlData, GetActiveLossOfControlDataCount = C_LossOfControl.GetActiveLossOfControlData, C_LossOfControl.GetActiveLossOfControlDataCount
 local GetItemCooldown = _G.GetItemCooldown
-local GetSpellDescription, GetSpellTexture = _G.GetSpellDescription, _G.GetSpellTexture
+local GetSpellDescription, GetSpellTexture = C_Spell.GetSpellDescription, C_Spell.GetSpellTexture
 local GetSpecialization, GetSpecializationInfo = _G.GetSpecialization, _G.GetSpecializationInfo
-
+local GetSpellName = C_Spell.GetSpellName;
+local GetSpellInfo = C_Spell.GetSpellInfo;
+local GetSpellLink = C_Spell.GetSpellLink;
 
 local specTemplate = {
     enabled = true,
@@ -280,7 +282,7 @@ local HekiliSpecMixin = {
             if a.id > 0 then
                 -- Hekili:ContinueOnSpellLoad( a.id, function( success )
                 a.onLoad = function( a )
-                    a.name = GetSpellInfo( a.id )
+                    a.name = C_Spell.GetSpellName( a.id )
 
                     if not a.name then
                         for k, v in pairs( class.auraList ) do
@@ -298,7 +300,7 @@ local HekiliSpecMixin = {
 
                     a.desc = GetSpellDescription( a.id )
 
-                    local texture = a.texture or GetSpellTexture( a.id )
+                    local texture = a.texture or C_Spell.GetSpellTexture( a.id )
 
                     if self.id > 0 then
                         class.auraList[ a.key ] = "|T" .. texture .. ":0|t " .. a.name
@@ -759,7 +761,7 @@ local HekiliSpecMixin = {
                         a.itemLoaded = GetTime()
 
                         if a.item and a.item ~= 158075 then
-                            a.itemSpellName, a.itemSpellID = GetItemSpell( a.item )
+                            a.itemSpellName, a.itemSpellID = C_Item.GetItemSpell( a.item )
 
                             if a.itemSpellID then
                                 a.itemSpellKey = a.key .. "_" .. a.itemSpellID
@@ -858,7 +860,7 @@ local HekiliSpecMixin = {
         if a.id and a.id > 0 then
             -- Hekili:ContinueOnSpellLoad( a.id, function( success )
             a.onLoad = function()
-                a.name = GetSpellInfo( a.id )
+                a.name = C_Spell.GetSpellName( a.id )
 
                 if not a.name then
                     for k, v in pairs( class.abilityList ) do
@@ -879,7 +881,7 @@ local HekiliSpecMixin = {
                     a.name = a.name .. " " .. a.suffix
                 end
 
-                local texture = a.texture or GetSpellTexture( a.id )
+                local texture = a.texture or C_Spell.GetSpellTexture( a.id )
 
                 self.abilities[ a.name ] = self.abilities[ a.name ] or a
                 class.abilities[ a.name ] = class.abilities[ a.name ] or a
@@ -892,7 +894,8 @@ local HekiliSpecMixin = {
                 if a.rangeSpell and type( a.rangeSpell ) == "number" then
                     Hekili:ContinueOnSpellLoad( a.rangeSpell, function( success )
                         if success then
-                            a.rangeSpell = GetSpellInfo( a.rangeSpell )
+                            local spellInfo = C_Spell.GetSpellInfo(a.rangeSpell);
+                            a.rangeSpell = spellInfo.name, nil, spellInfo.iconID, spellInfo.castTime, spellInfo.minRange, spellInfo.maxRange, spellInfo.originalIconID;
                         else
                             a.rangeSpell = nil
                         end
@@ -2210,21 +2213,27 @@ all:RegisterAuras( {
         generate = function( t )
             if UnitCanAttack( "player", "target" ) then
                 local i = 1
-                local name, _, count, debuffType, duration, expirationTime, _, canDispel = UnitBuff( "target", i )
+                local auraData = C_UnitAuras.GetBuffDataByIndex("target", i);
 
-                while( name ) do
-                    if debuffType == "" and canDispel then break end
+                if auraData then 
+                    local name, _, count, debuffType, duration, expirationTime, _, canDispel = AuraUtil.UnpackAuraData(auraData)                          
 
-                    i = i + 1
-                    name, _, count, debuffType, duration, expirationTime, _, canDispel = UnitBuff( "target", i )
-                end
+                    while( name ) do
+                        if debuffType == "" and canDispel then break end
 
-                if canDispel then
-                    t.count = count > 0 and count or 1
-                    t.expires = expirationTime > 0 and expirationTime or query_time + 5
-                    t.applied = expirationTime > 0 and ( expirationTime - duration ) or query_time
-                    t.caster = "nobody"
-                    return
+                        i = i + 1
+                        auraData = C_UnitAuras.GetBuffDataByIndex("target", i);
+                        if not auraData then break end
+                        name, _, count, debuffType, duration, expirationTime, _, canDispel = AuraUtil.UnpackAuraData(auraData)        
+                    end
+
+                    if canDispel then
+                        t.count = count > 0 and count or 1
+                        t.expires = expirationTime > 0 and expirationTime or query_time + 5
+                        t.applied = expirationTime > 0 and ( expirationTime - duration ) or query_time
+                        t.caster = "nobody"
+                        return
+                    end
                 end
             end
 
@@ -2298,7 +2307,7 @@ do
     local function getValidPotion()
         for _, potion in ipairs( df_potions ) do
             for _, item in ipairs( potion.items ) do
-                if GetItemCount( item, false ) > 0 then return item, potion.name end
+                if C_Item.GetItemCount( item, false ) > 0 then return item, potion.name end
             end
         end
     end
@@ -2721,7 +2730,7 @@ all:RegisterAbilities( {
         texture = 538745,
 
         usable = function ()
-            if GetItemCount( 5512 ) == 0 then return false, "requires healthstone in bags"
+            if C_Item.GetItemCount( 5512 ) == 0 then return false, "requires healthstone in bags"
             elseif not IsUsableItem( 5512 ) then return false, "healthstone on CD"
             elseif health.current >= health.max then return false, "must be damaged" end
             return true
@@ -2755,7 +2764,7 @@ all:RegisterAbilities( {
         texture = 5199618,
 
         usable = function ()
-            if GetItemCount( 205146 ) == 0 then return false, "requires weyrnstone in bags" end
+            if C_Item.GetItemCount( 205146 ) == 0 then return false, "requires weyrnstone in bags" end
             if solo then return false, "must have an ally to teleport" end
             return true
         end,
@@ -4787,9 +4796,10 @@ do
     end
 
     all:RegisterAbility( "gladiators_medallion", {
-        name = function () return ( GetSpellInfo( 277179 ) ) end,
+        name = function () return ( GetSpellName( 277179 ) ) end,
         listName = function ()
-            local _, _, tex = GetSpellInfo( 277179 )
+            local spellInfo = GetSpellInfo( 277179 )
+            local name, tex, castTime, minRange, maxRange, spellID, icon = spellInfo.name, spellInfo.iconID, spellInfo.castTime, spellInfo.minRange, spellInfo.maxRange, spellInfo.spellID, spellInfo.originalIconID;
             if tex then return "|T" .. tex .. ":0|t " .. ( GetSpellLink( 277179 ) ) end
         end,
         link = function () return ( GetSpellLink( 277179 ) ) end,
@@ -4860,9 +4870,10 @@ do
     end
 
     all:RegisterAbility( "gladiators_badge", {
-        name = function () return ( GetSpellInfo( 277185 ) ) end,
+        name = function () return ( GetSpellName( 277185 ) ) end,
         listName = function ()
-            local _, _, tex = GetSpellInfo( 277185 )
+            local spellInfo = GetSpellInfo( 277185 )
+            local name, tex, castTime, minRange, maxRange = spellInfo.name,  spellInfo.iconID, spellInfo.castTime, spellInfo.minRange, spellInfo.maxRange                        
             if tex then return "|T" .. tex .. ":0|t " .. ( GetSpellLink( 277185 ) ) end
         end,
         link = function () return ( GetSpellLink( 277185 ) ) end,
@@ -4959,9 +4970,10 @@ do
 
 
     all:RegisterAbility( "gladiators_emblem", {
-        name = function () return ( GetSpellInfo( 277187 ) ) end,
+        name = function () return ( GetSpellName( 277187 ) ) end,
         listName = function ()
-            local _, _, tex = GetSpellInfo( 277187 )
+            local spellInfo = GetSpellInfo( 277187 )
+            local name, tex, castTime, minRange, maxRange = spellInfo.name,  spellInfo.iconID, spellInfo.castTime, spellInfo.minRange, spellInfo.maxRange        
             if tex then return "|T" .. tex .. ":0|t " .. ( GetSpellLink( 277187 ) ) end
         end,
         link = function () return ( GetSpellLink( 277187 ) ) end,
@@ -6048,7 +6060,7 @@ local function addItemSettings( key, itemID, options )
 
     --[[ options.icon = {
         type = "description",
-        name = function () return select( 2, GetItemInfo( itemID ) ) or format( "[%d]", itemID )  end,
+        name = function () return select( 2, C_Item.GetItemInfo( itemID ) ) or format( "[%d]", itemID )  end,
         order = 1,
         image = function ()
             local tex = select( 10, GetItemInfo( itemID ) )
@@ -6064,7 +6076,7 @@ local function addItemSettings( key, itemID, options )
 
     options.disabled = {
         type = "toggle",
-        name = function () return format( "Disable %s via |cff00ccff[Use Items]|r", select( 2, GetItemInfo( itemID ) ) or ( "[" .. itemID .. "]" ) ) end,
+        name = function () return format( "Disable %s via |cff00ccff[Use Items]|r", select( 2, C_Item.GetItemInfo( itemID ) ) or ( "[" .. itemID .. "]" ) ) end,
         desc = function( info )
             local output = "If disabled, the addon will not recommend this item via the |cff00ccff[Use Items]|r action.  " ..
                 "You can still manually include the item in your action lists with your own tailored criteria."
@@ -6099,7 +6111,7 @@ local function addItemSettings( key, itemID, options )
 
     class.itemSettings[ itemID ] = {
         key = key,
-        name = function () return select( 2, GetItemInfo( itemID ) ) or ( "[" .. itemID .. "]" ) end,
+        name = function () return select( 2, C_Item.GetItemInfo( itemID ) ) or ( "[" .. itemID .. "]" ) end,
         item = itemID,
         options = options,
     }
@@ -6416,7 +6428,8 @@ function Hekili:SpecializationChanged()
 
         if ability and ability.id > 0 then
             if not ability.texture or not ability.name then
-                local name, _, tex = GetSpellInfo( ability.id )
+                local spellInfo = C_Spell.GetSpellInfo(ability.id);
+                local name, tex, castTime, minRange, maxRange, originalIcon = spellInfo.name, spellInfo.iconID, spellInfo.castTime, spellInfo.minRange, spellInfo.maxRange, spellInfo.originalIconID;
 
                 if name and tex then
                     ability.name = ability.name or name

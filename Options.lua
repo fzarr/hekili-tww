@@ -35,7 +35,6 @@ local BlizzBlue = "|cFF00B4FF"
 local Bullet = AtlasToString( "characterupdate_arrow-bullet-point" )
 local ClassColor = C_ClassColor.GetClassColor( class.file )
 
-
 -- One Time Fixes
 local oneTimeFixes = {
     resetAberrantPackageDates_20190728_1 = function( p )
@@ -5687,7 +5686,8 @@ do
             local ability = class.abilities[ v ]
             local option = {
                 type = "group",
-                name = function () return ability.name .. ( state:IsDisabled( v, true ) and "|cFFFF0000*|r" or "" ) end,
+                name = function ()
+                     return ability.name .. ( state:IsDisabled( v, true ) and "|cFFFF0000*|r" or "" ) end,
                 order = 1,
                 set = "SetItemOption",
                 get = "GetItemOption",
@@ -6431,7 +6431,7 @@ do
                                                     local ability = class.abilities[ spell ]
 
                                                     if ability and ability.id > 0 then
-                                                        local minR, maxR = select( 5, GetSpellInfo( ability.id ) )
+                                                        local minR, maxR = select( 5, C_Spell.GetSpellInfo( ability.id ) )
 
                                                         if maxR == 0 then
                                                             output = format( "%s (Melee)", Hekili:GetSpellLinkWithTexture( ability.id ) )
@@ -9322,8 +9322,8 @@ do
                             type = "toggle",
                             name = format( "%s Filter M+ Interrupts (DF Season 4)", NewFeature ),
                             desc = format( "If checked, low-priority enemy casts will be ignored when your target may use an ability that should be interrupted.\n\n"
-                                .. "Example:  In Everbloom, Earthshaper Telu's |W%s|w will be ignored and |W%s|w will be interrupted.", ( GetSpellInfo( 168040 ) or "Nature's Wrath" ),
-                                ( GetSpellInfo( 427459 ) or "Toxic Bloom" ) ),
+                                .. "Example:  In Everbloom, Earthshaper Telu's |W%s|w will be ignored and |W%s|w will be interrupted.", ( C_Spell.GetSpellName( 168040 ) or "Nature's Wrath" ),
+                                ( C_Spell.GetSpellName( 427459 ) or "Toxic Bloom" ) ),
                             width = 2,
                             order = 4
                         },
@@ -9812,7 +9812,8 @@ do
     local run = 0
 
     local function EmbedSpellData( spellID, token, talent, pvp )
-        local name, _, texture, castTime, minRange, maxRange = GetSpellInfo( spellID )
+        local spellInfo = C_Spell.GetSpellInfo( spellID )
+        local name, texture, castTime, minRange, maxRange = spellInfo.name,  spellInfo.iconID, spellInfo.castTime, spellInfo.minRange, spellInfo.maxRange
 
         local haste = UnitSpellHaste( "player" )
         haste = 1 + ( haste / 100 )
@@ -9846,7 +9847,7 @@ do
             local harmful = IsHarmfulSpell( name )
             local helpful = IsHelpfulSpell( name )
 
-            local _, charges, _, recharge = GetSpellCharges( spellID )
+            local _, charges, _, recharge = C_Spell.GetSpellCharges( spellID )
             local cooldown, gcd, icd
                 cooldown, gcd = GetSpellBaseCooldown( spellID )
                 if cooldown then cooldown = cooldown / 1000 end
@@ -9985,7 +9986,7 @@ do
                             local definitionInfo = C_Traits.GetDefinitionInfo( entryInfo.definitionID )
 
                             local spellID = definitionInfo.spellID
-                            local name = definitionInfo.overrideName or GetSpellInfo( spellID )
+                            local name = definitionInfo.overrideName or C_Spell.GetSpellName( spellID )
                             local subtext = GetSpellSubtext( spellID )
 
                             if subtext then
@@ -10025,7 +10026,8 @@ do
 
                 if i == 2 or tab == spec then
                     for j = offset + 1, offset + n do
-                        local name, _, texture, castTime, minRange, maxRange, spellID = GetSpellInfo( j, "spell" )
+                        local spellInfo = C_Spell.GetSpellInfo( j, "spell" )
+                        local name, texture, castTime, minRange, maxRange, spellID = spellInfo.name,  spellInfo.iconID, spellInfo.castTime, spellInfo.minRange, spellInfo.maxRange, spellInfo.spellID
                         if name then EmbedSpellData( spellID, key( name ) ) end
                     end
                 end
@@ -10036,7 +10038,8 @@ do
 
                 if i == 2 or tab == spec then
                     for j = offset + 1, offset + n do
-                        local name, _, texture, castTime, minRange, maxRange, spellID = GetSpellInfo( j, "spell" )
+                        local spellInfo = C_Spell.GetSpellInfo( j, "spell" )
+                        local name, texture, castTime, minRange, maxRange, spellID = spellInfo.name,  spellInfo.iconID, spellInfo.castTime, spellInfo.minRange, spellInfo.maxRange, spellInfo.spellID                        
                         if name then EmbedSpellData( spellID, key( name ) ) end
                     end
                 end

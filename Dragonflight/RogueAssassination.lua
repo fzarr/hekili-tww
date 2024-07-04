@@ -118,14 +118,14 @@ spec:RegisterTalents( {
     lethality              = { 90749, 382238, 2 }, -- Critical strike chance increased by $s1%. Critical strike damage bonus of your attacks that generate combo points increased by $s2%.
     -- marked_for_death       = { 90750, 137619, 1 }, -- Marks the target, instantly granting full combo points and increasing the damage of your finishing moves by $s1% for $d. Cooldown resets if the target dies during effect.
     master_poisoner        = { 90636, 378436, 1 }, -- Increases the non-damaging effects of your weapon poisons by $s1%.
-    nightstalker           = { 90693, 14062 , 2 }, -- While Stealth$?c3[ or Shadow Dance][] is active, your abilities deal $s1% more damage.
+    -- nightstalker           = { 90693, 14062 , 2 }, -- While Stealth$?c3[ or Shadow Dance][] is active, your abilities deal $s1% more damage.
     nimble_fingers         = { 90745, 378427, 1 }, -- Energy cost of Feint and Crimson Vial reduced by $s1.
     numbing_poison         = { 90763, 5761  , 1 }, -- Coats your weapons with a Non-Lethal Poison that lasts for $d.  Each strike has a $5761h% chance of poisoning the enemy, clouding their mind and slowing their attack and casting speed by $5760s1% for $5760d.
     recuperator            = { 90640, 378996, 1 }, -- Slice and Dice heals you for up to $s1% of your maximum health per 2 sec.
     resounding_clarity     = { 90638, 381622, 1 }, -- Echoing Reprimand Animacharges $m1 additional combo $Lpoint:points;.
     reverberation          = { 90638, 394332, 1 }, -- Echoing Reprimand's damage is increased by $s1%.
     rushed_setup           = { 90754, 378803, 1 }, -- The Energy costs of Kidney Shot, Cheap Shot, Sap, and Distract are reduced by $s1%.
-    shadow_dance           = { 90689, 185313, 1 }, -- Description not found.
+    -- shadow_dance           = { 90689, 185313, 1 }, -- Description not found.
     shadowrunner           = { 90687, 378807, 1 }, -- While Stealth or Shadow Dance is active, you move $s1% faster.
     shadowstep             = { 90695, 36554 , 1 }, -- Description not found.
     shiv                   = { 90740, 5938  , 1 }, -- Attack with your $?s319032[poisoned blades][off-hand], dealing $sw1 Physical damage, dispelling all enrage effects and applying a concentrated form of your $?a3408[Crippling Poison, reducing movement speed by $115196s1% for $115196d.]?a5761[Numbing Poison, reducing casting speed by $359078s1% for $359078d.][]$?(!a3408&!a5761)[active Non-Lethal poison.][]$?(a319032&a400783)[; Your Nature and Bleed ]?a319032[; Your Nature ]?a400783[; Your Bleed ][]$?(a400783|a319032)[damage done to the target is increased by $319504s1% for $319504d.][]$?a354124[ The target's healing received is reduced by $354124S1% for $319504d.][]; Awards $s3 combo $lpoint:points;.
@@ -278,9 +278,9 @@ end
 local calculate_multiplier = setfenv( function( spellID )
     local mult = 1
 
-    if talent.nightstalker.enabled and isStealthed() then
-        mult = mult * 1.08
-    end
+    -- if talent.nightstalker.enabled and isStealthed() then
+    --     mult = mult * 1.08
+    -- end
 
     if spellID == 703 and talent.improved_garrote.enabled and ( UA_GetPlayerAuraBySpellID( 375939 ) or UA_GetPlayerAuraBySpellID( 347037 ) or UA_GetPlayerAuraBySpellID( 392401 ) or UA_GetPlayerAuraBySpellID( 392403 ) ) then
         mult = mult * 1.5
@@ -520,11 +520,11 @@ spec:RegisterStateExpr( "persistent_multiplier", function ()
     if not this_action then return 1 end
     local mult = 1
 
-    if buff.stealth.up or buff.subterfuge.up then
-        if talent.nightstalker.enabled then
-            mult = mult * 1.08
-        end
-    end
+    -- if buff.stealth.up or buff.subterfuge.up then
+    --     if talent.nightstalker.enabled then
+    --         mult = mult * 1.08
+    --     end
+    -- end
 
     if this_action == "garrote" and ( buff.improved_garrote.up or talent.improved_garrote.enabled and buff.sepsis_buff.up ) then mult = mult * 1.5 end
 
@@ -2627,9 +2627,9 @@ spec:RegisterAbilities( {
             applyBuff( "slice_and_dice" )
             spend( combo_points.current, "combo_points" )
 
-            if talent.underhanded_upper_hand.enabled then
-                if buff.blade_flurry.up then buff.slice_and_dice.expires = buff.slice_and_dice.expires + buff.blade_flurry.remains end
-            end
+            -- if talent.underhanded_upper_hand.enabled then
+            --    if buff.blade_flurry.up then buff.slice_and_dice.expires = buff.slice_and_dice.expires + buff.blade_flurry.remains end
+            -- end
         end,
     },
 

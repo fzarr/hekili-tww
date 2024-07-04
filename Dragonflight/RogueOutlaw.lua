@@ -78,20 +78,21 @@ spec:RegisterTalents( {
     lethality                 = { 90749, 382238, 2 }, -- Critical strike chance increased by $s1%. Critical strike damage bonus of your attacks that generate combo points increased by $s2%.
     -- marked_for_death          = { 90750, 137619, 1 }, -- Marks the target, instantly granting full combo points and increasing the damage of your finishing moves by $s1% for $d. Cooldown resets if the target dies during effect.
     master_poisoner           = { 90636, 378436, 1 }, -- Increases the non-damaging effects of your weapon poisons by $s1%.
-    nightstalker              = { 90693, 14062 , 2 }, -- While Stealth$?c3[ or Shadow Dance][] is active, your abilities deal $s1% more damage.
+    -- nightstalker              = { 90693, 14062 , 2 }, -- While Stealth$?c3[ or Shadow Dance][] is active, your abilities deal $s1% more damage.
     nimble_fingers            = { 90745, 378427, 1 }, -- Energy cost of Feint and Crimson Vial reduced by $s1.
     numbing_poison            = { 90763, 5761  , 1 }, -- Coats your weapons with a Non-Lethal Poison that lasts for $d.  Each strike has a $5761h% chance of poisoning the enemy, clouding their mind and slowing their attack and casting speed by $5760s1% for $5760d.
     recuperator               = { 90640, 378996, 1 }, -- Slice and Dice heals you for up to $s1% of your maximum health per 2 sec.
     resounding_clarity        = { 90638, 381622, 1 }, -- Echoing Reprimand Animacharges $m1 additional combo $Lpoint:points;.
     reverberation             = { 90638, 394332, 1 }, -- Echoing Reprimand's damage is increased by $s1%.
     rushed_setup              = { 90754, 378803, 1 }, -- The Energy costs of Kidney Shot, Cheap Shot, Sap, and Distract are reduced by $s1%.
-    shadow_dance              = { 90689, 185313, 1 }, -- Description not found.
+    -- shadow_dance              = { 90689, 185313, 1 }, -- Description not found.
+    shadowheart               = { 101714, 455131, 1 }, -- Leech increased by 3% while Stealthed. (lol)
     shadowrunner              = { 90687, 378807, 1 }, -- While Stealth or Shadow Dance is active, you move $s1% faster.
     shadowstep                = { 90695, 36554 , 1 }, -- Description not found.
     shiv                      = { 90740, 5938  , 1 }, -- Attack with your $?s319032[poisoned blades][off-hand], dealing $sw1 Physical damage, dispelling all enrage effects and applying a concentrated form of your $?a3408[Crippling Poison, reducing movement speed by $115196s1% for $115196d.]?a5761[Numbing Poison, reducing casting speed by $359078s1% for $359078d.][]$?(!a3408&!a5761)[active Non-Lethal poison.][]$?(a319032&a400783)[; Your Nature and Bleed ]?a319032[; Your Nature ]?a400783[; Your Bleed ][]$?(a400783|a319032)[damage done to the target is increased by $319504s1% for $319504d.][]$?a354124[ The target's healing received is reduced by $354124S1% for $319504d.][]; Awards $s3 combo $lpoint:points;.
     soothing_darkness         = { 90691, 393970, 1 }, -- You are healed for ${$393971s1*($393971d/$393971t)}% of your maximum health over $393971d after gaining Vanish or Shadow Dance.
     stillshroud               = { 94561, 423662, 1 }, -- Shroud of Concealment has $s1% reduced cooldown.;
-    subterfuge                = { 90688, 108208, 1 }, -- Your abilities requiring Stealth can still be used for ${$s2/1000} sec after Stealth breaks.
+    subterfuge                = { 90688, 108208, 2 }, -- Your abilities requiring Stealth can still be used for ${$s2/1000} sec after Stealth breaks.
     superior_mixture          = { 94567, 423701, 1 }, -- Crippling Poison reduces movement speed by an additional $s1%.
     thistle_tea               = { 90756, 381623, 1 }, -- Restore $s1 Energy. Mastery increased by ${$s2*$mas}.1% for $d.
     tight_spender             = { 90692, 381621, 1 }, -- Energy cost of finishing moves reduced by $s1%.
@@ -99,6 +100,7 @@ spec:RegisterTalents( {
     unbreakable_stride        = { 90747, 400804, 1 }, -- Reduces the duration of movement slowing effects $s1%.
     vigor                     = { 90759, 14983 , 2 }, -- Increases your maximum Energy by $s1 and Energy regeneration by $s2%.
     virulent_poisons          = { 90760, 381543, 1 }, -- Increases the damage of your weapon poisons by $s1%.
+    without_a_trace           = { 101713, 382513, 1 }, -- Vanish has 1 additional charge
 
     -- Outlaw Talents
     ace_up_your_sleeve        = { 90670, 381828, 1 }, -- Between the Eyes has a $s1% chance per combo point spent to grant $394120s2 combo points.
@@ -145,6 +147,9 @@ spec:RegisterTalents( {
     thiefs_versatility        = { 90753, 381619, 1 }, -- Versatility increased by $s1%.
     triple_threat             = { 90678, 381894, 1 }, -- Sinister Strike has a $s1% chance to strike with both weapons after it strikes an additional time.
     underhanded_upper_hand    = { 90677, 424044, 1 }, -- Slice and Dice does not lose duration during Blade Flurry.; Blade Flurry does not lose duration during Adrenaline Rush.; Adrenaline Rush does not lose duration while Stealthed.; Stealth abilities can be used for an additional ${$s2/1000} sec after Stealth breaks.
+
+    -- Hero Talents
+    double_jeopardy           = { 95129, 454430, 1 }
 } )
 
 -- PvP Talents
@@ -275,7 +280,7 @@ spec:RegisterAuras( {
     -- https://wowhead.com/beta/spell=196937
     ghostly_strike = {
         id = 196937,
-        duration = 10,
+        duration = 12,
         max_stack = 1
     },
     -- Suffering $w1 damage every $t1 sec.
@@ -380,7 +385,7 @@ spec:RegisterAuras( {
     },
     subterfuge = {
         id = 115192,
-        duration = function() return talent.underhanded_upper_hand.enabled and 6 or 3 end,
+        duration = function() return 6 end,
         max_stack = 1,
     },
     -- Damage taken increased by $w1%.
@@ -546,13 +551,13 @@ spec:RegisterCombatLogEvent( function( _, subtype, _,  sourceGUID, sourceName, _
     local aura = rtbSpellIDs[ spellID ]
 
     if aura and ( subtype == "SPELL_AURA_APPLIED" or subtype == "SPELL_AURA_REFRESH" ) then
-        if IsCurrentSpell( 2098 ) then
+        if C_Spell.IsCurrentSpell( 2098 ) then
             rtbAuraAppliedBy[ aura ] = "dispatch"
-        elseif IsCurrentSpell( 8676 ) then
+        elseif C_Spell.IsCurrentSpell( 8676 ) then
             rtbAuraAppliedBy[ aura ] = "ambush"
-        elseif IsCurrentSpell( 193315 ) then
+        elseif C_Spell.IsCurrentSpell( 193315 ) then
             rtbAuraAppliedBy[ aura ] = "sinister_strike"
-        elseif IsCurrentSpell( 315341 ) then
+        elseif C_Spell.IsCurrentSpell( 315341 ) then
             rtbAuraAppliedBy[ aura ] = "between_the_eyes"
         elseif aura == "roll_the_bones" then
             lastApplicator = aura
@@ -749,8 +754,8 @@ spec:RegisterHook( "runHandler", function( ability )
             if buff.take_em_by_surprise.up then
                 buff.take_em_by_surprise.expires = query_time + 10 * talent.take_em_by_surprise.rank
             end
-            if talent.underhanded_upper_hand.enabled then
-                applyBuff( "subterfuge" )
+            if talent.subterfuge.enabled then
+               applyBuff( "subterfuge" )
             end
         end
 
@@ -855,9 +860,9 @@ spec:RegisterHook( "reset_precast", function()
             buff.blade_flurry.expires = buff.blade_flurry.expires + buff.adrenaline_rush.remains
         end
 
-        if buff.slice_and_dice.up and buff.blade_flurry.up then
-            buff.slice_and_dice.expires = buff.slice_and_dice.expires + buff.blade_flurry.remains
-        end
+        -- if buff.slice_and_dice.up and buff.blade_flurry.up then
+        --     buff.slice_and_dice.expires = buff.slice_and_dice.expires + buff.blade_flurry.remains
+        -- end
     end
 
     if Hekili.ActiveDebug and buff.roll_the_bones.up then
@@ -1094,7 +1099,7 @@ spec:RegisterAbilities( {
         gcd = "off",
         school = "physical",
 
-        spend = 30,
+        spend = 35,
         spendType = "energy",
 
         talent = "ghostly_strike",
@@ -1450,11 +1455,10 @@ spec:RegisterSetting( "check_blade_rush_range", true, {
 
 spec:RegisterSetting( "never_roll_in_window", false, {
     name = strformat( "%s: Never Reroll in %s", Hekili:GetSpellLinkWithTexture( spec.abilities.roll_the_bones.id ), Hekili:GetSpellLinkWithTexture( 1784 ) ),
-    desc = strformat( "If checked, %s will never be recommended while %s or %s is active.\n\n"
+    desc = strformat( "If checked, %s will never be recommended while %s is active.\n\n"
         .. "This preference is not proven to be more optimal than the default behavior, but it is consistent with guides.",
         Hekili:GetSpellLinkWithTexture( spec.abilities.roll_the_bones.id ),
-        Hekili:GetSpellLinkWithTexture( spec.talents.subterfuge[2] ),
-        Hekili:GetSpellLinkWithTexture( spec.talents.shadow_dance[2] ) ),
+        Hekili:GetSpellLinkWithTexture( spec.talents.subterfuge[2] ) ),
     type = "toggle",
     width = "full",
 } )

@@ -21,6 +21,7 @@ local UA_GetPlayerAuraBySpellID = C_UnitAuras.GetPlayerAuraBySpellID
 local FindStringInInventoryItemTooltip = ns.FindStringInInventoryItemTooltip
 local ResetDisabledGearAndSpells = ns.ResetDisabledGearAndSpells
 local WipeCovenantCache = ns.WipeCovenantCache
+local IsPlayerSpell = _G.IsPlayerSpell
 
 local RC = LibStub( "LibRangeCheck-3.0" )
 
@@ -41,7 +42,6 @@ local activeDisplays = {}
 function Hekili:GetActiveDisplays()
     return activeDisplays
 end
-
 
 local handlerCount = {}
 Hekili.ECount = handlerCount
@@ -499,7 +499,7 @@ do
                         if IsPowerSelected( loc, power ) then
                             local name = class.powers[ pInfo.spellID ]
                             if not name then
-                                Hekili:Error( "Missing Azerite Power info for #" .. pInfo.spellID .. ": " .. GetSpellInfo( pInfo.spellID ) .. "." )
+                                Hekili:Error( "Missing Azerite Power info for #" .. pInfo.spellID .. ": " .. C_Spell.GetSpellName( pInfo.spellID ) .. "." )
                             else
                                 p[ name ] = rawget( p, name ) or { __rank = 0 }
                                 p[ name ].__rank = p[ name ].__rank + 1
@@ -746,10 +746,10 @@ do
         if T1 then
             state.trinket.t1.__id = T1
             -- So this isn't *truly* accurate, but it's accurate relatively speaking.
-            state.trinket.t1.ilvl = GetDetailedItemLevelInfo( T1 )
+            state.trinket.t1.ilvl = C_Item.GetDetailedItemLevelInfo( T1 )
 
-            local isUsable = IsUsableItem( T1 )
-            local name, spellID = GetItemSpell( T1 )
+            local isUsable = C_Item.IsUsableItem( T1 )
+            local name, spellID = C_Item.GetItemSpell( T1 )
             local tSpell = class.itemMap[ T1 ]
 
             if tSpell then
@@ -797,10 +797,10 @@ do
         if T2 then
             state.trinket.t2.__id = T2
              -- So this isn't *truly* accurate, but it's accurate relatively speaking.
-             state.trinket.t2.ilvl = GetDetailedItemLevelInfo( T2 )
+             state.trinket.t2.ilvl = C_Item.GetDetailedItemLevelInfo( T2 )
 
-            local isUsable = IsUsableItem( T2 )
-            local name, spellID = GetItemSpell( T2 )
+            local isUsable = C_Item.IsUsableItem( T2 )
+            local name, spellID = C_Item.GetItemSpell( T2 )
             local tSpell = class.itemMap[ T2 ]
 
             if tSpell then
@@ -844,8 +844,8 @@ do
         class.abilities.main_hand = class.abilities.actual_main_hand
 
         if MH then
-            local isUsable = IsUsableItem( MH )
-            local name, spellID = GetItemSpell( MH )
+            local isUsable = C_Item.IsUsableItem( MH )
+            local name, spellID = C_Item.GetItemSpell( MH )
             local tSpell = class.itemMap[ MH ]
             local ability = class.abilities[ tSpell ]
 
@@ -923,7 +923,7 @@ do
 
         -- Improve Pocket-Sized Computronic Device.
         if state.equipped.pocketsized_computation_device then
-            local tName = CGetItemInfo( 167555 )
+            local tName = CC_Item.GetItemInfo( 167555 )
             local redName, redLink = GetItemGem( tName, 1 )
 
             if redName and redLink then
@@ -1065,7 +1065,7 @@ end )
 
 local dynamic_keys = setmetatable( {}, {
     __index = function( t, k, v )
-        local name = GetSpellInfo( k )
+        local name = C_Spell.GetSpellName( k )
         local key = name and formatKey( name ) or k
         t[k] = key
         return t[k]
@@ -1303,13 +1303,17 @@ RegisterUnitEvent( "UNIT_SPELLCAST_DELAYED", "player", nil, function( event, uni
 
                     if u then
                         local _, maxR = RC:GetRange( u )
-                        maxR = maxR or select( 6, GetSpellInfo( ability.id ) ) or 40
+                        local spellInfo = GetSpellInfo( ability.id )
+                        local name, tex, castTime, minRange, maxRange = spellInfo.name,  spellInfo.iconID, spellInfo.castTime, spellInfo.minRange, spellInfo.maxRange                                 
+                        maxR = maxR or maxRange or 40
                         travel = maxR / ability.velocity
                     end
                 end
 
                 if not travel then
-                    travel = ( select( 6, GetSpellInfo( ability.id ) ) or 40 ) / ability.velocity
+                    local spellInfo = GetSpellInfo( ability.id )
+                    local name, tex, castTime, minRange, maxRange = spellInfo.name,  spellInfo.iconID, spellInfo.castTime, spellInfo.minRange, spellInfo.maxRange                              
+                    travel = ( maxRange or 40 ) / ability.velocity
                 end
 
                 state:QueueEvent( ability.impactSpell or ability.key, finish / 1000, 0.05 + travel, "PROJECTILE_IMPACT", target, true )
@@ -1365,7 +1369,7 @@ local power_tick_data = {
 
 local spell_names = setmetatable( {}, {
     __index = function( t, k )
-        t[ k ] = GetSpellInfo( k )
+        t[ k ] = C_Spell.GetSpellName( k ) -- Dodgy!!!
         return t[ k ]
     end
 } )
@@ -1408,7 +1412,7 @@ RegisterUnitEvent( "UNIT_POWER_UPDATE", "player", nil, UNIT_POWER_FREQUENT )
 
 local autoAuraKey = setmetatable( {}, {
     __index = function( t, k )
-        local name = GetSpellInfo( k )
+        local name = C_Spell.GetSpellName( k )
 
         if not name then return end
 
@@ -1773,12 +1777,18 @@ local function CLEU_HANDLER( event, timestamp, subtype, hideCaster, sourceGUID, 
 
                                 if unit then
                                     local _, maxR = RC:GetRange( unit )
-                                    maxR = maxR or select( 6, GetSpellInfo( ability.id ) ) or 40
+                                    local spellInfo = GetSpellInfo( ability.id )
+                                    local name, tex, castTime, minRange, maxRange = spellInfo.name,  spellInfo.iconID, spellInfo.castTime, spellInfo.minRange, spellInfo.maxRange                                         
+                                    maxR = maxR or maxRange or 40
                                     travel = maxR / ability.velocity
                                 end
                             end
 
-                            if not travel then travel = ( select( 6, GetSpellInfo( ability.id ) ) or 40 ) / ability.velocity end
+                            if not travel then 
+                                local spellInfo = GetSpellInfo( ability.id )
+                                local name, tex, castTime, minRange, maxRange = spellInfo.name,  spellInfo.iconID, spellInfo.castTime, spellInfo.minRange, spellInfo.maxRange                   
+                                travel = ( maxRange or 40 ) / ability.velocity 
+                            end
 
                             state:QueueEvent( ability.impactSpell or ability.key, finish / 1000, travel, "PROJECTILE_IMPACT", destGUID, true )
                         end
@@ -1833,7 +1843,9 @@ local function CLEU_HANDLER( event, timestamp, subtype, hideCaster, sourceGUID, 
 
                             if unit then
                                 local _, maxR = RC:GetRange( unit )
-                                maxR = maxR or select( 6, GetSpellInfo( ability.id ) ) or 40
+                                local spellInfo = GetSpellInfo( ability.id )
+                                local name, tex, castTime, minRange, maxRange = spellInfo.name,  spellInfo.iconID, spellInfo.castTime, spellInfo.minRange, spellInfo.maxRange                                        
+                                maxR = maxR or maxRange or 40
                                 travel = maxR / ability.velocity
                             end
                         end
@@ -1853,7 +1865,8 @@ local function CLEU_HANDLER( event, timestamp, subtype, hideCaster, sourceGUID, 
                 end
             end
 
-            state.gcd.lastStart = max( state.gcd.lastStart, ( GetSpellCooldown( 61304 ) ) )
+            local cooldown = C_Spell.GetSpellCooldown(61304);
+            state.gcd.lastStart = max( state.gcd.lastStart, cooldown.startTime )
             -- if subtype ~= "SPELL_DAMAGE" then Hekili:ForceUpdate( subtype, true ) end
         end
     end
@@ -2012,7 +2025,7 @@ local function StoreKeybindInfo( page, key, aType, id, console )
     local action, ability
 
     if aType == "item" then
-        local item, link = CGetItemInfo( id )
+        local item, link = CC_Item.GetItemInfo( id )
         ability = item and ( class.abilities[ item ] or class.abilities[ link ] )
         action = ability and ability.key
 

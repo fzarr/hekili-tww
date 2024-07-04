@@ -1554,7 +1554,7 @@ end )
 
 spec:RegisterSetting( "goak_damage", 40, {
     name = "|T135919:0|t Guardian of Ancient Kings Damage Threshold",
-    desc = function() return "When set above zero, the addon may recommend |T135919:0|t " .. ( GetSpellInfo( class.abilities.guardian_of_ancient_kings.id ) or "Guardian of Ancient Kings" )
+    desc = function() return "When set above zero, the addon may recommend |T135919:0|t " .. ( C_Spell.GetSpellName( class.abilities.guardian_of_ancient_kings.id ) or "Guardian of Ancient Kings" )
             .. " when you take this percentage of your maximum health in damage in the past 5 seconds.\n\n"
             .. "By default, your Defensives toggle must also be enabled."
         end,
@@ -1572,7 +1572,7 @@ end )
 
 spec:RegisterSetting( "ds_damage", 60, {
     name = "|T524354:0|t Divine Shield Damage Threshold",
-    desc = function() return "When set above zero, the addon may recommend |T524354:0|t " .. ( GetSpellInfo( class.abilities.divine_shield.id ) or "Divine Shield" )
+    desc = function() return "When set above zero, the addon may recommend |T524354:0|t " .. ( C_Spell.GetSpellName( class.abilities.divine_shield.id ) or "Divine Shield" )
             .. " when you take this percentage of your maximum health in damage in the past 5 seconds.\n\n"
             .. "By default, your Defensives toggle must also be enabled."
         end,

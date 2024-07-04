@@ -32,7 +32,6 @@ local scripts = Hekili.Scripts
 
 local unknown_buff, unknown_debuff
 
-
 -- This will be our environment table for local functions.
 local state = Hekili.State
 
@@ -423,7 +422,7 @@ local mt_trinket = {
         elseif k == "remains" then
             return isEnabled and class.trinkets[ t.id ].buff and state.buff[ class.trinkets[ t.id ].buff ].remains or 0
         elseif k == "has_cooldown" then
-            return isEnabled and ( GetItemSpell( t.id ) ~= nil ) or false
+            return isEnabled and ( C_Item.GetItemSpell( t.id ) ~= nil ) or false
         elseif k == "ready_cooldown" then
             if isEnabled and t.usable and t.ability then
                 return t.cooldown.ready
@@ -3001,7 +3000,7 @@ do
         __index = function( t, k )
             local ability = rawget( t, "key" ) and class.abilities[ t.key ] or class.abilities.null_cooldown
 
-            local GetCooldown = _G.GetSpellCooldown
+            local GetCooldown = C_Spell.GetSpellCooldown
             local profile = Hekili.DB.profile
             local id = ability.id
 
@@ -3014,7 +3013,7 @@ do
                     GetCooldown = ability.funcs.cooldown_special
                     id = 999999
                 elseif ability.item then
-                    GetCooldown = _G.GetItemCooldown
+                    GetCooldown = C_Item.GetItemCooldown
                     id = ability.itemCd or ability.item
                 end
             end
@@ -3039,8 +3038,9 @@ do
                 local start, duration = 0, 0
 
                 if id > 0 then
-                    start, duration = GetCooldown( id )
-                    local lossStart, lossDuration = GetSpellLossOfControlCooldown( id )
+                    local cooldownInfo = GetCooldown(id);
+                    start, duration = cooldownInfo.startTime, cooldownInfo.duration
+                    local lossStart, lossDuration = C_Spell.GetSpellLossOfControlCooldown( id )
                     if lossStart + lossDuration > start + duration then
                         start = lossStart
                         duration = lossDuration
@@ -3083,7 +3083,8 @@ do
 
                 if ability.charges and ability.charges > 1 then
                     local charges, maxCharges
-                    charges, maxCharges, start, duration = GetSpellCharges( id )
+                    local chargeInfo = C_Spell.GetSpellCharges( id )
+                    charges, maxCharges = chargeInfo.currentCharges, chargeInfo.maxCharges
 
                     --[[ if class.abilities[ t.key ].toggle and not state.toggle[ class.abilities[ t.key ].toggle ] then
                         charges = 1
@@ -5460,7 +5461,7 @@ local all = class.specs[ 0 ]
 -- 04072017: Let's go ahead and cache aura information to reduce overhead.
 local autoAuraKey = setmetatable( {}, {
     __index = function( t, k )
-        local aura_name = GetSpellInfo( k )
+        local aura_name = C_Spell.GetSpellName( k )
 
         if not aura_name then return end
 
@@ -5634,7 +5635,10 @@ do
 
         local i = 1
         while ( true ) do
-            local name, _, count, _, duration, expires, caster, _, _, spellID, _, _, _, _, timeMod, v1, v2, v3 = UnitBuff( unit, i )
+            local auraData = C_UnitAuras.GetBuffDataByIndex(unit, i);
+            if not auraData then break end
+    
+            local name, _, count, _, duration, expires, caster, _, _, spellID, _, _, _, _, timeMod, v1, v2, v3 = AuraUtil.UnpackAuraData(auraData)
             if not name then break end
 
             local aura = class.auras[ spellID ]
@@ -5674,8 +5678,10 @@ do
 
         i = 1
         while ( true ) do
-
-            local name, _, count, _, duration, expires, caster, _, _, spellID, _, _, _, _, timeMod, v1, v2, v3 = UnitDebuff( unit, i )
+            local auraData = C_UnitAuras.GetDebuffDataByIndex(unit, i);
+            if not auraData then break end
+    
+            local name, _, count, _, duration, expires, caster, _, _, spellID, _, _, _, _, timeMod, v1, v2, v3 = AuraUtil.UnpackAuraData(auraData)
             if not name then break end
 
             local aura = class.auras[ spellID ]
@@ -7025,13 +7031,13 @@ function state:IsKnown( sID )
     if sID < 0 then
         if ability.known ~= nil then
             if type( ability.known ) == "number" then
-                return IsUsableItem( ability.known ), "IsUsableItem known"
+                return C_Item.IsUsableItem( ability.known ), "IsUsableItem known"
             end
             return ability.known
         end
 
         if ability.item and ability.key ~= "potion" then
-            return IsUsableItem( ability.item ), "IsUsableItem item " .. ability.item .. " and " .. ( tostring( ability.known ) or "nil" )
+            return C_Item.IsUsableItem( ability.item ), "IsUsableItem item " .. ability.item .. " and " .. ( tostring( ability.known ) or "nil" )
         end
 
         return true

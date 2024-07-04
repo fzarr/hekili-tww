@@ -1534,7 +1534,7 @@ spec:RegisterSetting( "prevent_hardcasts", false, {
         Hekili:GetSpellLinkWithTexture( spec.abilities.blizzard.id ), 
         Hekili:GetSpellLinkWithTexture( spec.abilities.glacial_spike.id ),
         Hekili:GetSpellLinkWithTexture( spec.abilities.frostbolt.id ),
-        Hekili:GetSpellLinkWithTexture( 108839 ), ( GetSpellInfo( 108839 ) ) 
+        Hekili:GetSpellLinkWithTexture( 108839 ), ( C_Spell.GetSpellName( 108839 ) ) 
     ),
     type = "toggle",
     width = "full"

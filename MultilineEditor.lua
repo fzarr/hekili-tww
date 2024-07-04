@@ -252,7 +252,6 @@ local function GenerateDiagnosticTooltip( widget, event )
     local tested = false
 
     local packName, script = path[ 2 ], path[ #path ]
-    -- print( unpack( path ) )
 
     local pack = rawget( Hekili.DB.profile.packs, packName )
     local list = pack and pack.lists[ listName ]
@@ -331,7 +330,7 @@ end
 local function OnReceiveDrag(self)                                               -- EditBox / ScrollFrame
   local type, id, info = GetCursorInfo()
   if type == "spell" then
-    info = GetSpellInfo(id, info)
+    info = C_Spell.GetSpellInfo(id, info)
   elseif type ~= "item" then
     return
   end

@@ -974,7 +974,7 @@ spec:RegisterHook( "reset_precast", function ()
     end
 
     if not SUMMON_DEMON_TEXT then
-        SUMMON_DEMON_TEXT = GetSpellInfo( 180284 )
+        SUMMON_DEMON_TEXT = C_Spell.GetSpellName( 180284 )
         class.abilityList.summon_pet = "|T136082:0|t |cff00ccff[" .. ( SUMMON_DEMON_TEXT or "Summon Demon" ) .. "]|r"
     end
 end )

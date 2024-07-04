@@ -4,7 +4,7 @@
 local addon, ns = ...
 local Hekili = _G[ addon ]
 
-if not Hekili.IsDragonflight() then return end
+if not Hekili.IsDragonflight() and not Hekili.IsTheWarWithin() then return end
 
 local C_ClassTalents, C_Traits = _G.C_ClassTalents, _G.C_Traits
 local IsPlayerSpell = _G.IsPlayerSpell

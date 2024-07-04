@@ -26,6 +26,8 @@ local Tooltip = ns.Tooltip
 local Masque, MasqueGroup
 local _
 
+local IsUsableSpell = IsUsableSpell or C_Spell.IsSpellUsable
+local GetSpellCooldown = _G.GetSpellCooldown
 
 function Hekili:GetScale()
     return PixelUtil.GetNearestPixelSize( 1, PixelUtil.GetPixelToUIUnitFactor(), 1 )
@@ -1087,10 +1089,10 @@ do
 
                             if action ~= b.lastAction or self.NewRecommendations or not b.Image then
                                 if ability.item then
-                                    b.Image = b.Recommendation.texture or ability.texture or select( 10, GetItemInfo( ability.item ) )
+                                    b.Image = b.Recommendation.texture or ability.texture or select( 10, C_Item.GetItemInfo( ability.item ) )
                                 else
                                     local override = options and rawget( options, action )
-                                    b.Image = override and override.icon or b.Recommendation.texture or ability.texture or GetSpellTexture( ability.id )
+                                    b.Image = override and override.icon or b.Recommendation.texture or ability.texture or C_Spell.GetSpellTexture( ability.id )
                                 end
                                 b.Texture:SetTexture( b.Image )
                                 b.Texture:SetTexCoord( unpack( b.texCoords ) )
@@ -1104,7 +1106,7 @@ do
                                     local id = ability.item or ability.id
                                     local isItem = ability.item ~= nil
 
-                                    if id and ( isItem and IsCurrentItem( id ) or IsCurrentSpell( id ) ) and exact_time > GetTime() then
+                                    if id and ( isItem and IsCurrentItem( id ) or C_Spell.IsCurrentSpell( id ) ) and exact_time > GetTime() then
                                         b.Highlight:Show()
                                     else
                                         b.Highlight:Hide()
@@ -1157,13 +1159,13 @@ do
                                     b.glowColor[1], b.glowColor[2], b.glowColor[3], b.glowColor[4] = 0.95, 0.95, 0.32, 1
                                 end
 
-                                if conf.glow.mode == "default" then
+                                if conf.glow.mode == "default" and Glower and Glower.ButtonGlow_Start then
                                     Glower.ButtonGlow_Start( b, b.glowColor )
                                     b.glowStop = Glower.ButtonGlow_Stop
-                                elseif conf.glow.mode == "autocast" then
+                                elseif conf.glow.mode == "autocast" and Glower and Glower.AutoCastGlow_Start then
                                     Glower.AutoCastGlow_Start( b, b.glowColor )
                                     b.glowStop = Glower.AutoCastGlow_Stop
-                                elseif conf.glow.mode == "pixel" then
+                                elseif conf.glow.mode == "pixel" and Glower and Glower.PixelGlow_Start then
                                     Glower.PixelGlow_Start( b, b.glowColor )
                                     b.glowStop = Glower.PixelGlow_Stop
                                 end
@@ -1222,13 +1224,13 @@ do
                                         b.glowColor[1], b.glowColor[2], b.glowColor[3], b.glowColor[4] = 0.95, 0.95, 0.32, 1
                                     end
 
-                                    if conf.glow.mode == "default" then
+                                    if conf.glow.mode == "default"  and Glower and Glower.ButtonGlow_Start then
                                         Glower.ButtonGlow_Start( b, b.glowColor )
                                         b.glowStop = Glower.ButtonGlow_Stop
-                                    elseif conf.glow.mode == "autocast" then
+                                    elseif conf.glow.mode == "autocast" and Glower and Glower.AutoCastGlow_Start then
                                         Glower.AutoCastGlow_Start( b, b.glowColor )
                                         b.glowStop = Glower.AutoCastGlow_Stop
-                                    elseif conf.glow.mode == "pixel" then
+                                    elseif conf.glow.mode == "pixel" and Glower and Glower.PixelGlow_Start then
                                         Glower.PixelGlow_Start( b, b.glowColor )
                                         b.glowStop = Glower.PixelGlow_Stop
                                     end
@@ -1282,7 +1284,7 @@ do
                                 local _, unusable
 
                                 if a.itemCd or a.item then
-                                    unusable = not IsUsableItem( a.itemCd or a.item )
+                                    unusable = not C_Item.IsUsableItem( a.itemCd or a.item )
                                 else
                                     _, unusable = IsUsableSpell( a.actualName or a.name )
                                 end
@@ -1480,7 +1482,8 @@ do
                         local start, duration = 0, 0
 
                         if a.gcd ~= "off" then
-                            start, duration = GetSpellCooldown( 61304 )
+                            local cooldownInfo = C_Spell.GetSpellCooldown( 61304 )
+                            start, duration, enabled, modRate = cooldownInfo.startTime, cooldownInfo.duration, cooldownInfo.isEnabled, cooldownInfo.modRate                            
                             if start > 0 then moment = start + duration - now end
                         end
 
@@ -1492,7 +1495,8 @@ do
                             rStart, rDuration = GetItemCooldown( a.item )
                         else
                             if a.cooldown > 0 or a.spendType ~= "runes" then
-                                rStart, rDuration = GetSpellCooldown( a.id )
+                                local cooldownInfo = C_Spell.GetSpellCooldown( a.id )
+                                rStart, rDuration, enabled, modRate = cooldownInfo.startTime, cooldownInfo.duration, cooldownInfo.isEnabled, cooldownInfo.modRate   
                             end
                         end
                         if rStart > 0 then moment = max( moment, rStart + rDuration - now ) end
@@ -1612,7 +1616,8 @@ do
         end
 
         function d:RefreshCooldowns( event )
-            local gStart = GetSpellCooldown( 61304 )
+            local cooldownInfo = C_Spell.GetSpellCooldown(61304);
+            local gStart = cooldownInfo.startTime
             local cStart = ( select( 4, UnitCastingInfo( "player" ) ) or select( 4, UnitCastingInfo( "player" ) ) or 0 ) / 1000
 
             local now = GetTime()
@@ -1630,7 +1635,13 @@ do
                     if ability.item then
                         start, duration, enabled, modRate = GetItemCooldown( ability.item )
                     elseif ability.key ~= state.empowerment.spell then
-                        start, duration, enabled, modRate = GetSpellCooldown( ability.id )
+                        local cooldownInfo = C_Spell.GetSpellCooldown( ability.id )
+                        if not cooldownInfo then
+                            local log = format("Could not get cooldown of ability: %d", ability.id)
+                            print(log)
+                        else
+                            start, duration, enabled, modRate = cooldownInfo.startTime, cooldownInfo.duration, cooldownInfo.isEnabled, cooldownInfo.modRate
+                        end
                     end
 
                     if i == 1 and conf.delays.extend and rec.exact_time > max( now, start + duration ) then
@@ -1692,13 +1703,13 @@ do
                                 b.glowColor[1], b.glowColor[2], b.glowColor[3], b.glowColor[4] = 0.95, 0.95, 0.32, 1
                             end
 
-                            if conf.glow.mode == "default" then
+                            if conf.glow.mode == "default" and Glower and Glower.ButtonGlow_Start then
                                 Glower.ButtonGlow_Start( b, b.glowColor )
                                 b.glowStop = Glower.ButtonGlow_Stop
-                            elseif conf.glow.mode == "autocast" then
+                            elseif conf.glow.mode == "autocast" and Glower and Glower.AutoCastGlow_Start then
                                 Glower.AutoCastGlow_Start( b, b.glowColor )
                                 b.glowStop = Glower.AutoCastGlow_Stop
-                            elseif conf.glow.mode == "pixel" then
+                            elseif conf.glow.mode == "pixel" and Glower and Glower.PixelGlow_Start then
                                 Glower.PixelGlow_Start( b, b.glowColor )
                                 b.glowStop = Glower.PixelGlow_Stop
                             end
@@ -1763,7 +1774,7 @@ do
 
                     local spellID = select( 9, UnitCastingInfo( "player" ) ) or select( 9, UnitChannelInfo( "player" ) )
 
-                    if id and ( isItem and IsCurrentItem( id ) or IsCurrentSpell( id ) ) then --  and b.ExactTime > GetTime() then
+                    if id and ( isItem and IsCurrentItem( id ) or C_Spell.IsCurrentSpell( id ) ) then --  and b.ExactTime > GetTime() then
                         b.Highlight:Show()
                     else
                         b.Highlight:Hide()

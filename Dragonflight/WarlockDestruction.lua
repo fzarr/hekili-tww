@@ -1081,7 +1081,7 @@ spec:RegisterHook( "reset_precast", function ()
     class.abilities.summon_pet = class.abilities[ settings.default_pet ]
 
     if not SUMMON_DEMON_TEXT then
-        SUMMON_DEMON_TEXT = GetSpellInfo( 180284 )
+        SUMMON_DEMON_TEXT = C_Spell.GetSpellName( 180284 )
         class.abilityList.summon_pet = "|T136082:0|t |cff00ccff[" .. ( SUMMON_DEMON_TEXT or "Summon Demon" ) .. "]|r"
     end
 
@@ -1698,9 +1698,9 @@ spec:RegisterSetting( "default_pet", "summon_sayaad", {
 } )
 
 spec:RegisterSetting( "cleave_apl", false, {
-    name = function() return "|T" .. ( GetSpellTexture( 116858 ) ) .. ":0|t Funnel Damage in AOE" end,
+    name = function() return "|T" .. ( C_Spell.GetSpellTexture( 116858 ) ) .. ":0|t Funnel Damage in AOE" end,
     desc = function()
-        return "If checked, the addon will use its cleave priority to funnel damage into your primary target (via |T" .. ( GetSpellTexture( 116858 ) ) .. ":0|t Chaos Bolt) instead of spending Soul Shards on |T" .. ( GetSpellTexture( 5740 ) ) .. ":0|t Rain of Fire.\n\n" ..
+        return "If checked, the addon will use its cleave priority to funnel damage into your primary target (via |T" .. ( C_Spell.GetSpellTexture( 116858 ) ) .. ":0|t Chaos Bolt) instead of spending Soul Shards on |T" .. ( C_Spell.GetSpellTexture( 5740 ) ) .. ":0|t Rain of Fire.\n\n" ..
         "You may wish to change this option for different fights and scenarios, which can be done here, via the minimap button, or with |cFFFFD100/hekili toggle cleave_apl|r."
     end,
     type = "toggle",
@@ -1716,7 +1716,7 @@ end )
 spec:RegisterSetting( "fixed_aoe_3_plus", false, {
     name = "Require 3+ Targets for AOE",
     desc = function()
-        return "If checked, the default action list will only use its AOE action list (including |T" .. ( GetSpellTexture( 5740 ) ) .. ":0|t Rain of Fire) when there are 3+ targets.\n\n" ..
+        return "If checked, the default action list will only use its AOE action list (including |T" .. ( C_Spell.GetSpellTexture( 5740 ) ) .. ":0|t Rain of Fire) when there are 3+ targets.\n\n" ..
         "In multi-target Patchwerk simulations, this setting creates a significant DPS loss.  However, this option may be useful in real-world scenarios, especially if you are fighting two moving targets that will not stand in your Rain of Fire for the whole duration."
     end,
     type = "toggle",
@@ -1740,14 +1740,14 @@ spec:RegisterSetting( "havoc_macro", nil, {
 } )
 
 spec:RegisterSetting( "immolate_macro_text", nil, {
-    name = function () return "When |T" .. GetSpellTexture( 348 ) .. ":0|t Immolate is shown with a |TInterface\\Addons\\Hekili\\Textures\\Cycle:0|t indicator, the addon is recommending that you cast Immolate on a different target (without swapping).  A mouseover macro is useful for this and an example is included below." end,
+    name = function () return "When |T" .. C_Spell.GetSpellTexture( 348 ) .. ":0|t Immolate is shown with a |TInterface\\Addons\\Hekili\\Textures\\Cycle:0|t indicator, the addon is recommending that you cast Immolate on a different target (without swapping).  A mouseover macro is useful for this and an example is included below." end,
     type = "description",
     width = "full",
     fontSize = "medium"
 } )
 
 spec:RegisterSetting( "immolate_macro", nil, {
-    name = function () return "|T" .. GetSpellTexture( 348 ) .. ":0|t Immolate Macro" end,
+    name = function () return "|T" .. C_Spell.GetSpellTexture( 348 ) .. ":0|t Immolate Macro" end,
     type = "input",
     width = "full",
     multiline = 2,
