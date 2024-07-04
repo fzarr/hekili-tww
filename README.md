@@ -1,7 +1,7 @@
 # hekili-tww
 Hekili fork for The War Within beta client. 
 
-No APLs / ability logic has been updated - only the minimal AddOn API changes for it to run on the beta client.
+No APLs / ability logic has been updated - only the minimal AddOn API changes for it to run on the beta client. Outlaw rogue has some support but you will need to manually replace the APL with the one from simcraft.
 
 No github release is available - clone or download+unzip to your _beta_/Interface/AddOns folder.
 
@@ -12,5 +12,5 @@ I've not worked with Hekili or even Lua much before so the code changes I made a
 ## Known Issues
 * Glower library doesn't work and not sure why (some issue with Blizzard Mixins API)
 * Item recommendations might be buggy
-* No new or reworked talents / spells / items have been added
+* Very few new or reworked talents / spells / items have been added
 * Any TWWE simcraft APLs have not been integrated
